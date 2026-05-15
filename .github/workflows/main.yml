@@ -24,24 +24,24 @@ jobs:
           libc6-dev libbz2-dev libffi-dev autoconf libtool pkg-config cmake ant \
           openjdk-17-jdk unzip zip
 
-      - name: Install Buildozer & Fix Cython
+      - name: Install Buildozer & Cython
         run: |
-          # سب سے اہم لائن: Cython کا مخصوص ورژن ڈاؤن لوڈ کرنا
           pip install --user "Cython==0.29.33" virtualenv buildozer
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Download SDK and Accept Licenses
+      - name: Build Android APK (The Bash Script Method)
         run: |
-          # یہ کمانڈ صرف اینڈرائیڈ SDK ڈاؤن لوڈ کرے گی اور لائسنس کے لیے رکے گی
-          buildozer android debug || true
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
           
-          # یہ کمانڈ خودکار طریقے سے تمام لائسنسز کو "Yes" کر دے گی
-          find ~/.buildozer -name "sdkmanager" -exec sh -c 'yes | "$1" --licenses' _ {} \; || true
-
-      - name: Final Build APK
-        run: |
-          # اب چونکہ لائسنسز قبول ہو چکے ہیں اور Cython بھی ٹھیک ہے، یہ 100% بلڈ کرے گا
-          buildozer android debug
+          # ہم ایک الگ اسکرپٹ بنا رہے ہیں تاکہ گٹ ہب کا 'Broken pipe' ایرر اسے روک نہ سکے
+          cat << 'EOF' > build_script.sh
+          #!/bin/bash
+          yes y | buildozer android debug
+          EOF
+          
+          chmod +x build_script.sh
+          ./build_script.sh
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
