@@ -21,29 +21,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libffi-dev python3-dev libssl-dev zlib1g-dev \
           libncurses5-dev libncursesw5-dev libreadline-dev libsqlite3-dev tk-dev libgdbm-dev \
-          libc6-dev libbz2-dev libffi-dev cython3 autoconf libtool pkg-config cmake ant \
+          libc6-dev libbz2-dev libffi-dev autoconf libtool pkg-config cmake ant \
           openjdk-17-jdk unzip zip
 
-      - name: Install Buildozer
+      - name: Install Buildozer & Fix Cython
         run: |
-          pip install --user --upgrade buildozer cython virtualenv
+          # سب سے اہم لائن: Cython کا مخصوص ورژن ڈاؤن لوڈ کرنا
+          pip install --user "Cython==0.29.33" virtualenv buildozer
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build Android APK
+      - name: Download SDK and Accept Licenses
         run: |
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          # یہ ٹرک "Broken pipe" کے ایرر کو نظر انداز کر کے کام جاری رکھے گی
-          yes "y" | buildozer android debug || true
+          # یہ کمانڈ صرف اینڈرائیڈ SDK ڈاؤن لوڈ کرے گی اور لائسنس کے لیے رکے گی
+          buildozer android debug || true
+          
+          # یہ کمانڈ خودکار طریقے سے تمام لائسنسز کو "Yes" کر دے گی
+          find ~/.buildozer -name "sdkmanager" -exec sh -c 'yes | "$1" --licenses' _ {} \; || true
 
-      - name: Verify APK Success
+      - name: Final Build APK
         run: |
-          if ls bin/*.apk 1> /dev/null 2>&1; then
-            echo "Congratulations! APK successfully built!"
-          else
-            echo "Error: APK not found. There is an issue in the python code or buildozer.spec"
-            exit 1
-          fi
+          # اب چونکہ لائسنسز قبول ہو چکے ہیں اور Cython بھی ٹھیک ہے، یہ 100% بلڈ کرے گا
+          buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
