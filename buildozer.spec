@@ -5,7 +5,7 @@ package.domain = org.dev
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,html,js,css
 version = 1.0
-requirements = python3,sqlite3,kivy==2.2.1,kivymd==1.1.1,requests,urllib3,certifi
+requirements = python3,kivy==2.2.1,kivymd==1.1.1,requests,urllib3,certifi
 orientation = portrait
 fullscreen = 1
 android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
