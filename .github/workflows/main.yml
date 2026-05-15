@@ -15,7 +15,7 @@ jobs:
         with:
           python_version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt update
           sudo apt install -y build-essential libffi-dev python3-dev libssl-dev zlib1g-dev \
@@ -26,16 +26,23 @@ jobs:
       - name: Install Buildozer
         run: |
           pip install --user buildozer
-          pip install --user cython
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build Android APK
+      - name: Accept Android Licenses (The Fix)
         run: |
-          # اینڈرائیڈ SDK لائسنسز کو مینوئلی قبول کرنے کا بہترین طریقہ
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          buildozer android debug || buildozer android debug
-        shell: bash
+          # اینڈرائیڈ ٹولز انسٹال کرنا اور لائسنسز کو زبردستی قبول کرنا
+          yes | buildozer android debug --log_level=2 || true
+          # اگر اوپر والا رک جائے تو یہ کمانڈ لائسنسز کو پکا کر دے گی
+          sdk_path=$(find $HOME/.buildozer -name "sdkmanager" | head -n 1)
+          if [ -f "$sdk_path" ]; then
+            yes | $sdk_path --licenses
+          fi
+
+      - name: Final Build
+        run: |
+          # اب اصل بلڈ شروع ہوگی
+          buildozer android debug
+        continue-on-error: false
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
