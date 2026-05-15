@@ -29,19 +29,12 @@ jobs:
           pip install --user "Cython==0.29.33" virtualenv buildozer
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Build Android APK (The Bash Script Method)
+      - name: Build Android APK
         run: |
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
-          
-          # ہم ایک الگ اسکرپٹ بنا رہے ہیں تاکہ گٹ ہب کا 'Broken pipe' ایرر اسے روک نہ سکے
-          cat << 'EOF' > build_script.sh
-          #!/bin/bash
-          yes y | buildozer android debug
-          EOF
-          
-          chmod +x build_script.sh
-          ./build_script.sh
+          # یہ کمانڈ سارا لاگ ایک فائل میں محفوظ کرے گی، اور فیل ہونے کی صورت میں صرف آخری 100 لائنیں دکھائے گی
+          yes y | buildozer android debug > build.log 2>&1 || (echo "=== ERROR LOG ===" && tail -n 100 build.log && exit 1)
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
