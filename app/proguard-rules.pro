@@ -1,0 +1,6 @@
+-keep class com.htmltoapk.** { *; }
+-keep class com.google.firebase.** { *; }
+-keep class kotlin.** { *; }
+-keepclassmembernames class com.htmltoapk.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn org.apache.commons.**
