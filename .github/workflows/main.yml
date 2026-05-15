@@ -1,66 +1,46 @@
+name: Build Android APK
 
-title = HTML to APK Converter
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
 
-# (str) Package name
-package.name = html_apk_tool
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-# (str) Package domain (needed for android packaging)
-package.domain = org.dev
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-# (str) Source code where the main.py lives
-source.dir = .
-
-# (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,html,js,css
-
-# (str) Application version
-version = 1.0
-
-# (list) Application requirements
-# یہاں وہ لائبریریز ہیں جو ایپ کو چلانے کے لیے ضروری ہیں
-requirements = python3,kivy==2.2.1,kivymd==1.1.1,requests,urllib3,certifi
-
-# (str) Supported orientations
-orientation = portrait
-
-# (bool) Indicate if the application should be fullscreen
-fullscreen = 1
-
-# (list) Permissions
-# انٹرنیٹ کی اجازت لازمی ہے تاکہ فائر بیس کام کر سکے
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
-
-# (int) Android API to use (31 is for Android 12)
-android.api = 31
-
-# (int) Minimum API your APK will support
-android.minapi = 21
-
-# (str) Android arch to build for
-android.archs = arm64-v8a, armeabi-v7a
-
-# (bool) Skip byte compile for .py files
-android.skip_byte_compile = 1
-
-# (list) List of service to declare
-services = 
-
-# (str) Android logcat filters to use
-android.logcat_filters = *:S python:D
-
-# (bool) Copy library instead of making a libpython.so
-android.copy_libs = 1
-
-[buildozer]
-# (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
-log_level = 2
-
-# (int) Display warning if buildozer is run as root (0 = off, 1 = on)
-warn_on_root = 1
-
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          name: My-Generated-App
+          python_version: '3.10'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libffi-dev python3-dev \
+          libssl-dev zlib1g-dev libncurses5-dev libncursesw5-dev \
+          libreadline-dev libsqlite3-dev tk-dev libgdbm-dev \
+          libc6-dev libbz2-dev libffi-dev cython3 \
+          autoconf libtool pkg-config zlib1g-dev libncurses5-dev \
+          libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev \
+          ant openjdk-17-jdk
+
+      - name: Install Buildozer
+        run: |
+          pip install --user buildozer
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Build with Buildozer
+        run: |
+          buildozer android debug
+        continue-on-error: false
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: My-App-APK
           path: bin/*.apk
-          
